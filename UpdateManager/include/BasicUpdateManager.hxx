@@ -4,7 +4,7 @@
 #include <QtCore/QObject>
 #include <UpdateManagerInterface.hxx>
 #include <PluginInterface.hxx>
-#include <Core.hpp>
+#include <Core.hxx>
 
 namespace Core
 {
@@ -50,6 +50,8 @@ namespace Core
 		virtual int getVersion() const;
 		virtual void install();
 		virtual void uninstall();
+                virtual QStringList getFilesNames() const;
+                virtual QStringList getLibraryFilesNames() const;
 		
 	    public:
 		virtual void installUpdates(QList< PluginInterface* > plugins) const;

@@ -5,7 +5,7 @@
 #include <QtNetwork/QNetworkAccessManager>
 #include <PluginInterface.hxx>
 #include <UpdateManagerInterface.hxx>
-#include <Exception.hpp>
+#include <Exception.hxx>
 
 #ifdef Q_OS_UNIX
 #ifndef DISABLE_FORK
