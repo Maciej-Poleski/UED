@@ -5,6 +5,9 @@
 #include <QtCore/QList>
 #include "PluginInterface.hxx"
 
+namespace Core
+{
+
 /** Interfejs menadżera aktualizacji.
 * Klasa implementująca ten interfejs musi odpowiadać za całość procesu utrzymywania oprogramowania aktualnego.
 */
@@ -16,8 +19,9 @@ class UpdateManagerInterface
     public:
 	/** Wykonuje instalację aktualizacji dla danego plugin-u od A od Z.
 	* @param plugins Lista plugin-ów któree zostaną zaaktualizowane.
+	* @return Lista pluginów których instalacja powiodła się
 	*/
-	virtual void installUpdates(QList<PluginInterface*> plugins) const=0;
+	virtual QList< PluginInterface* > installUpdates(QList<PluginInterface*> plugins)=0;
 	
 	/** Rejestruje dany plugin w menadżerze aktualizacji. Od tej pory będzie on zarządzał aktualizacjami dla tego plugin-u.
 	* @param plugin Plugin który zostanie zarejestrowany.
@@ -36,6 +40,8 @@ class UpdateManagerInterface
 	
 };
 
-Q_DECLARE_INTERFACE(UpdateManagerInterface,"UED.core.UpdateManagerInterface/1.0")
+}
+
+Q_DECLARE_INTERFACE(Core::UpdateManagerInterface,"UED.core.UpdateManagerInterface/1.0")
 
 #endif // UPDATEMANAGERINTERFACE_HXX

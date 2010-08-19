@@ -1,122 +1,178 @@
-#include <QtCore/QtPlugin>
 #include "Core.hxx"
+#include <QtCore/QtPlugin>
+#include <QtCore/QPluginLoader>
+#include <QtCore/QDir>
+#include <QtCore/QTextCodec>
+#include <QtCore/QTranslator>
+#include <QtCore/QLibraryInfo>
+#include <QtGui/QMessageBox>
 #include <cstdio>
+#include <QtCore/QDebug>
 Q_IMPORT_PLUGIN(ued_basic_update_manager)
 
 namespace Core
 {
-    #ifdef Q_OS_WIN32
-    #define CORE_EXECUTABLE "Core.exe"
-    #elif defined(Q_OS_UNIX)
-    #define CORE_EXECUTABLE "Core"
-    #endif
 
-    static const char* NAME = "UED.Core"; ///< Unikalna nazwa plugin-u.
-    static const char *FILES[ ] =
-    { CORE_EXECUTABLE };
-    /** Użyj QLibrary aby uzyskać właściwy prefiks i sufiks */
-    static const char *LIBRARY[ ] =
-    { };
+static const char* NAME = "UED.Core"; ///< Unikalna nazwa plugin-u.
+static const char *FILES[ ] =
+	{ CORE_EXECUTABLE };
+/** Użyj QLibrary aby uzyskać właściwy prefiks i sufiks */
+static const char *LIBRARY[ ] =
+	{ };
 
-    Core *core = 0;
+Core *core = 0;
 
-    QStringList Core::getFilesNames() const
-    {
+QStringList Core::getFilesNames() const
+{
 	int s = sizeof ( FILES ) / QT_POINTER_SIZE;
 	QStringList result;
 	for( int i = 0 ; i < s ; ++i )
 	{
-	    result << FILES[i];
+		result << FILES[i];
 	}
 	return result;
-    }
+}
 
-    QStringList Core::getLibraryFilesNames() const
-    {
+QStringList Core::getPureLibraryFilesNames() const
+{
 	int s = sizeof ( LIBRARY ) / QT_POINTER_SIZE;
 	QStringList result;
 	for( int i = 0 ; i < s ; ++i )
 	{
-	    result << QLibrary(LIBRARY[i]).fileName();
+		result << LIBRARY[i];
 	}
 	return result;
-    }
+}
 
-    void Core::uninstall()
-    {
+void Core::uninstall()
+{
 	updateManager->unregisterPlugin(this);
 	core = 0; ///< Nie wiem czy ten kod zadziała. EDIT: powinien zadziałać
-    }
+}
 
-    void Core::install()
-    {
+void Core::install()
+{
 	core = this;
+	mainWindow = new MainWindow();
 	loadPlugins();
+	mainWindow->show();
 
 	updateManager->registerPlugin(this); ///< Rejestruje główny moduł w menadżerze aktualizacji
+}
 
-	widget = new QPushButton("Aktualizacja");
-	widget->show();
-	connect(widget, SIGNAL(clicked()), this, SLOT(doUpdate()));
-    }
-
-    void Core::loadPlugins()
-    {
+void Core::loadPlugins()
+{
 	foreach(QObject *pluginInstance, QPluginLoader::staticInstances())
-	{
-	    PluginInterface* plugin =
-	    qobject_cast< PluginInterface* > (pluginInstance);
-	    if( plugin )
-	    {
-		plugin->install();
-	    }
-	    else
-	    {
-		// TODO Tutaj przydałby się wyjątek
-	    }
-	}
-	// TODO Ładowanie pluginów dynamicznie linkowanych
-    }
+		{
+			PluginInterface* plugin = qobject_cast< PluginInterface* > (pluginInstance);
+			if( plugin )
+			{
+				plugin->install();
+				qDebug() << plugin->getFilesNames() << plugin->getLibraryFilesNames() << plugin->getName();
+			}
+			else
+			{
+				// TODO Tutaj przydałby się wyjątek
+			}
+		}
+	QDir pluginsDir(qApp->applicationDirPath());
+	foreach (QString fileName, pluginsDir.entryList(QDir::Files))
+		{
+			QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
+			QObject *objectPlugin = loader.instance();
+			if( objectPlugin )
+			{
+				PluginInterface* plugin = qobject_cast< PluginInterface* > (objectPlugin);
+				if( plugin )
+				{
+					try
+					{
+						plugin->install();
+						qDebug() << plugin->getFilesNames() << plugin->getLibraryFilesNames()
+								<< plugin->getName();
+					}
+					catch( Exception e )
+					{
+						qDebug() << e.what();
+					}
+				}
+				else
+				{
+					// TODO Tutaj przydałby się wyjątek
+				}
+			} // ELSE jest niepotrzebne - interesują nas tylko poprawne pliki bibliotek współdzielonych
+		}
+}
 
-    Core::Core( int &argc, char**argv ) throw( Exception ) :
-    QApplication(argc, argv)
-    {
+Core::Core( int &argc, char**argv ) throw( Exception ) :
+	QApplication(argc, argv), database(0), marksDatabase(0), eventsDatabase(0), mainWindow(0)
+{
 	if( core ) throw Exception(tr("Core already exist!"));
 	networkAccessManager = new QNetworkAccessManager(this);
-    }
 
-    Core::~Core() throw()
-    {
-    }
+	initializeQt();
+	loadLocalization();
+}
 
-    int Core::getVersion() const
-    {
+void Core::initializeQt()
+{
+	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+	QTextCodec::setCodecForTr(QTextCodec::codecForCStrings());
+}
+
+void Core::loadLocalization()
+{
+	QTranslator qtTranslator;
+	qtTranslator.load("qt_" + QLocale::system().name(),
+					  QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+	installTranslator( &qtTranslator);
+
+	QTranslator myappTranslator;
+	myappTranslator.load("ued_" + QLocale::system().name());
+	installTranslator( &myappTranslator);
+}
+
+Core::~Core() throw()
+{
+}
+
+int Core::getVersion() const
+{
 	return VERSION;
-    }
+}
 
-    QString Core::getName() const
-    {
+QString Core::getName() const
+{
 	return NAME;
-    }
+}
 
-    temporary void Core::doUpdate()
-    {
+void Core::about()
+{
+	QMessageBox::about(
+					   mainWindow,
+					   tr("Underground Electronic Diary"),
+					   tr(
+						  "This version is under development. Report bugs and suggestions via e-mail, GG, whatever."));
+}
+
+temporary void Core::doUpdate()
+{
 	QList< PluginInterface* > needUpdate = updateManager->checkUpdates();
+	fprintf(stderr, "A");
 	if( needUpdate.isEmpty() ) return;
-	QString
-	message =
-	QString::fromUtf8(
-	"Dostępne są aktualizacje następujących modułów:\n");
+	QString message = QString::fromUtf8("Dostępne są aktualizacje następujących modułów:\n");
 	foreach(PluginInterface* plugin,needUpdate)
-	    message += plugin->getName() + "\n";
+			message += plugin->getName() + "\n";
 	message += QString::fromUtf8("Instalować?");
-	if( QMessageBox::information(widget,
-	    QString::fromUtf8("Dostępne są aktualizacje"),
-				     message, QMessageBox::Yes, QMessageBox::No)
-	    == QMessageBox::Yes )
+	if( QMessageBox::information(mainWindow, QString::fromUtf8("Dostępne są aktualizacje"), message,
+								 QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes )
 	{
-	    //TODO Aktualizacja
+		QList< PluginInterface* > list = updateManager->installUpdates(needUpdate);
+		foreach(PluginInterface* plugin,list)
+			{
+				qDebug() << plugin->getName();
+			}
 	}
-    }
+}
 
 }

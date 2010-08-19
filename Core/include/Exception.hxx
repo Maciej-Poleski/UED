@@ -3,8 +3,16 @@
 
 class Exception
 {
+	QString message;
 public:
-    Exception(QString msg) {}
+	Exception( QString msg ) :
+		message(msg)
+	{
+	}
+	QString what() const
+	{
+		return message;
+	}
 };
 
 #endif
