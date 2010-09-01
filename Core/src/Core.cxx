@@ -85,52 +85,60 @@ void Core::loadPlugins()
 				PluginInterface* plugin = qobject_cast< PluginInterface* > (objectPlugin);
 				if( plugin )
 				{
-					try
-					{
-						plugin->install();
-						qDebug() << plugin->getFilesNames() << plugin->getLibraryFilesNames()
-								<< plugin->getName();
-					}
-					catch( Exception e )
-					{
-						qDebug() << e.what();
-					}
+					//try
+					//{
+					plugin->install();
+					qDebug() << plugin->getFilesNames() << plugin->getLibraryFilesNames()
+							<< plugin->getName();
+					//}
+					//catch( Exception e )
+					//{
+					//	qDebug() << e.what();
+					//}
 				}
 				else
 				{
-					// TODO Tutaj przydałby się wyjątek
+					qDebug() << "Nie powiodło się " << pluginsDir.absoluteFilePath(fileName).toLocal8Bit()
+							<< " Załadowane, ale nie posiada interfejsu";
 				}
 			} // ELSE jest niepotrzebne - interesują nas tylko poprawne pliki bibliotek współdzielonych
+			else
+			{
+				qDebug() << "Nie powiodło się " << pluginsDir.absoluteFilePath(fileName).toLocal8Bit();
+			}
 		}
 }
 
-Core::Core( int &argc, char**argv ) throw( Exception ) :
-	QApplication(argc, argv), database(0), marksDatabase(0), eventsDatabase(0), mainWindow(0)
+Core::Core() throw( Exception ) :
+	database(0), marksDatabase(0), eventsDatabase(0), mainWindow(0)
 {
-	if( core ) throw Exception(tr("Core already exist!"));
+	//loadLocalization();
+	//initializeQt();
+
+	if( core )
+		throw Exception(tr("Core already exist!"));
 	networkAccessManager = new QNetworkAccessManager(this);
-
-	initializeQt();
-	loadLocalization();
 }
+/*
+ void Core::initializeQt()
+ {
+ QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+ QTextCodec::setCodecForTr(QTextCodec::codecForCStrings());
+ }
 
-void Core::initializeQt()
-{
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForTr(QTextCodec::codecForCStrings());
-}
+ void Core::loadLocalization()
+ {
+ qDebug() << "Ładowanie lokalizacji";
+ QTranslator qtTranslator;
+ qtTranslator.load("qt_" + QLocale::system().name(),
+ QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+ installTranslator( &qtTranslator);
 
-void Core::loadLocalization()
-{
-	QTranslator qtTranslator;
-	qtTranslator.load("qt_" + QLocale::system().name(),
-					  QLibraryInfo::location(QLibraryInfo::TranslationsPath));
-	installTranslator( &qtTranslator);
-
-	QTranslator myappTranslator;
-	myappTranslator.load("ued_" + QLocale::system().name());
-	installTranslator( &myappTranslator);
-}
+ QTranslator myappTranslator;
+ if( !myappTranslator.load("ued_core_" + QLocale::system().name()) )
+ throw "aaa";
+ installTranslator( &myappTranslator);
+ }*/
 
 Core::~Core() throw()
 {
@@ -148,24 +156,22 @@ QString Core::getName() const
 
 void Core::about()
 {
-	QMessageBox::about(
-					   mainWindow,
-					   tr("Underground Electronic Diary"),
-					   tr(
-						  "This version is under development. Report bugs and suggestions via e-mail, GG, whatever."));
+	QMessageBox::about(mainWindow, tr("Underground Electronic Diary"), tr(
+		"This version is under development. Report bugs and suggestions via e-mail, GG, whatever."));
 }
 
 temporary void Core::doUpdate()
 {
 	QList< PluginInterface* > needUpdate = updateManager->checkUpdates();
 	fprintf(stderr, "A");
-	if( needUpdate.isEmpty() ) return;
+	if( needUpdate.isEmpty() )
+		return;
 	QString message = QString::fromUtf8("Dostępne są aktualizacje następujących modułów:\n");
 	foreach(PluginInterface* plugin,needUpdate)
 			message += plugin->getName() + "\n";
 	message += QString::fromUtf8("Instalować?");
 	if( QMessageBox::information(mainWindow, QString::fromUtf8("Dostępne są aktualizacje"), message,
-								 QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes )
+		QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes )
 	{
 		QList< PluginInterface* > list = updateManager->installUpdates(needUpdate);
 		foreach(PluginInterface* plugin,list)

@@ -12,9 +12,11 @@ INCLUDEPATH += include
 LIBS += -L \
     . \
     -lued_basic_update_manager
+CONFIG += release
 
 # Input
-HEADERS += include/Repopulateable.hxx \
+HEADERS += include/Storeable.hxx \
+    include/Repopulateable.hxx \
     include/EventDatabaseInterface.hxx \
     include/MarkDatabaseInterface.hxx \
     include/DatabaseInterface.hxx \
@@ -27,7 +29,10 @@ HEADERS += include/Repopulateable.hxx \
     include/SubjectInterface.hxx \
     include/TypeInterface.hxx \
     include/Exception.hxx
-SOURCES += src/Repopulateable.cxx \
+SOURCES += src/Storeable.cxx \
+    src/Repopulateable.cxx \
     main.cxx \
     src/MainWindow.cxx \
     src/Core.cxx
+TRANSLATIONS    = ued_core_pl.ts 
+CODECFORTR      = UTF-8

@@ -60,11 +60,13 @@ void MainWindow::createCentralWidget()
 void MainWindow::currentTabChanged( int index )
 {
 	Repopulateable* tab = dynamic_cast< Repopulateable* > (tabWidget->widget(index));
-	if( tab ) tab->repopulate();
+	if( tab )
+		tab->repopulate();
 }
 
 void MainWindow::closeEvent( QCloseEvent *event )
 {
+	core->storePlugins();
 	core->deletePlugins();
 	event->accept();
 }

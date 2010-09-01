@@ -1,5 +1,5 @@
 TEMPLATE = lib
-CONFIG += plugin
+CONFIG += plugin release
 TARGET = ../Core/$$qtLibraryTarget(ued_core_basicdatabase)
 QT = core \
     gui
@@ -16,3 +16,5 @@ SOURCES += src/BasicType.cxx \
     src/BasicDatabase.cxx
 FORMS += 
 RESOURCES += 
+TRANSLATIONS    = ued_basicdatabase_pl.ts 
+CODECFORTR      = UTF-8

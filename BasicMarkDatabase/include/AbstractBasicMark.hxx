@@ -49,15 +49,22 @@ public:
 
 	virtual void bindToEvent( EventInterface* event )
 	{
-		if( event ) throw Exception("Attemping to re-bind event to mark");
+		//if( event ) throw Exception("Attemping to re-bind event to mark");
 		this->event = event;
 		this->expectedEventID = Core::core->getEventsDatabase()->getExpectedID(event);
 	}
 
 	virtual QString toString() const=0;
+	virtual QString getComment() const=0;
 
-	virtual void saveBinarySerialization( QDataStream& ) const;
-	virtual void loadBinarySerialization( QDataStream& );
+	/** Pyta użytkownika o ocene i zwraca stworzony obiekt. */
+	static AbstractBasicMark* askUser( QWidget* parent, EventInterface* event );
+
+	/** Pyta użytkownika o ocene i zwraca stworzony obiekt. */
+	static AbstractBasicMark* askUser( QWidget* parent, TypeInterface* type );
+
+	virtual void saveBinarySerialization( QDataStream& ) const; ///< Zawsze należy implementować!
+	virtual void loadBinarySerialization( QDataStream& ); ///< Zawsze należy implementować!
 
 protected:
 	EventInterface* event; ///< Element obowiązkowy

@@ -48,7 +48,8 @@ void BasicDatabase::populate()
 	}
 	foreach(SubjectInterface* subjectI,subjectsList)
 		{
-			if( subjectI->getState() == SubjectInterface::DISABLED ) continue;
+			if( subjectI->getState() == SubjectInterface::DISABLED )
+				continue;
 			Database::BasicSubject *subject = dynamic_cast< Database::BasicSubject* > (subjectI); // Always working
 			connect(subject, SIGNAL(typeAdded(TypeInterface*)), this, SLOT(populateSubject(TypeInterface*)));
 			QWidget *widget = new QWidget();
@@ -74,9 +75,10 @@ void BasicDatabase::addType( SubjectInterface* subject )
 {
 	QString typeName = QInputDialog::getText(centralWidget, tr("Add type"), tr("Additional type name for ")
 			+ subject->getName() + ":");
-	if( typeName.isEmpty() ) return;
+	if( typeName.isEmpty() )
+		return;
 	Database::BasicType* type = new Database::BasicType(dynamic_cast< Database::BasicSubject* > (subject),
-														typeName); // Always working
+		typeName); // Always working
 	subject->addType(type);
 }
 
@@ -101,7 +103,8 @@ void BasicDatabase::install()
 
 void BasicDatabase::dispatchTabClose( int index )
 {
-	if( dynamic_cast< AddSubjectWidget* > (centralWidget->widget(index)) ) return;
+	if( dynamic_cast< AddSubjectWidget* > (centralWidget->widget(index)) )
+		return;
 	if( QMessageBox::question(centralWidget, tr("Are you sure?"), tr("This operation will remove ")
 			+ centralWidget->tabText(index) + tr(" from diary.\nContinue?"), QMessageBox::Ok
 			| QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Ok )
@@ -122,15 +125,14 @@ void BasicDatabase::dispatchTabClose( int index )
 
 void BasicDatabase::uninstall()
 {
-	store();
 	core->setDatabase(0);
 	core->getUpdateManager()->unregisterPlugin(this);
 	// TODO: usuwanie menu
 }
 
-void BasicDatabase::store()
+void BasicDatabase::store() const
 {
-	QFile file("BasicDatabase.store");
+	QFile file(qApp->applicationDirPath() + "/BasicDatabase.store");
 	file.open(QFile::WriteOnly);
 	QDataStream dataStream( &file);
 	saveBinarySerialization(dataStream);
@@ -138,7 +140,7 @@ void BasicDatabase::store()
 
 void BasicDatabase::restore()
 {
-	QFile file("BasicDatabase.store");
+	QFile file(qApp->applicationDirPath() + "/BasicDatabase.store");
 	if( file.open(QFile::ReadOnly) )
 	{
 		QDataStream dataStream( &file);

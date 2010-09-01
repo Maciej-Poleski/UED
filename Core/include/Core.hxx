@@ -10,6 +10,7 @@
 #include <EventDatabaseInterface.hxx>
 #include <Exception.hxx>
 #include <MainWindow.hxx>
+#include <Storeable.hxx>
 
 #include <cstdio>
 
@@ -44,13 +45,13 @@ extern Core* core;
  * - GUI
  * - Podstawowej bazy danych
  */
-class Core : public QApplication, public PluginInterface
+class Core : public QObject, public PluginInterface
 {
 Q_OBJECT
 Q_DISABLE_COPY ( Core )Q_INTERFACES ( Core::PluginInterface )
 
 public:
-	Core( int &argc, char**argv ) throw( Exception );
+	Core() throw( Exception );
 	~Core() throw();
 	int run();
 
@@ -137,8 +138,23 @@ public:
 	temporary
 	void deletePlugins()
 	{
+		delete marksDatabase;
+		marksDatabase = 0;
+		delete eventsDatabase;
+		eventsDatabase = 0;
 		delete database;
 		database = 0;
+	}
+
+	temporary
+	void storePlugins()
+	{
+		if( dynamic_cast< Storeable* > (marksDatabase) )
+			dynamic_cast< Storeable* > (marksDatabase)->store();
+		if( dynamic_cast< Storeable* > (eventsDatabase) )
+			dynamic_cast< Storeable* > (eventsDatabase)->store();
+		if( dynamic_cast< Storeable* > (database) )
+			dynamic_cast< Storeable* > (database)->store();
 	}
 
 public slots:
@@ -159,19 +175,6 @@ private:
 	void initializeQt();
 	void loadLocalization();
 };
-
-inline int Core::run()
-{
-#ifdef ENABLE_FORK
-	if( fork() == 0 )
-#endif
-		return exec();
-#ifdef ENABLE_FORK
-	else
-		return 0;
-#endif
-}
-
 }
 
 #endif // CORE_H

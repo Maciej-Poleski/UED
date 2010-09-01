@@ -17,7 +17,6 @@ MarksTabWidget::MarksTabWidget( BasicMarkDatabase* database, QWidget* parent ) :
 	QTabWidget(parent), database(database), currentTab( -1)
 {
 	populate();
-	connect(this, SIGNAL(currentChanged(int)), this, SLOT(update(int)));
 }
 
 void MarksTabWidget::populate()
@@ -28,23 +27,23 @@ void MarksTabWidget::populate()
 			SubjectTab* tab = new SubjectTab(database, subject, this, true);
 			addTab(tab, subject->getName());
 		}
-	dynamic_cast< SubjectTab* > (currentWidget())->update();
+	if( currentWidget() ) dynamic_cast< SubjectTab* > (currentWidget())->update();
+	connect(this, SIGNAL(currentChanged(int)), this, SLOT(update(int)));
 	currentTab = currentIndex();
 }
 
 void MarksTabWidget::repopulate()
 {
-	SubjectInterface* subject = dynamic_cast< SubjectTab* > (currentWidget())->getSubject();
-	fprintf(stderr, "C");
+	disconnect(SIGNAL(currentChanged(int)));
+	SubjectInterface* subject = currentWidget() ? dynamic_cast< SubjectTab* > (currentWidget())->getSubject()
+			: 0;
 	while( count() > 0 )
 	{
 		QWidget *page = widget(0);
 		removeTab(0);
 		delete page;
 	}
-	fprintf(stderr, "A");
 	populate();
-	fprintf(stderr, "B");
 	for( int i = 0 ; i < count() ; ++i )
 	{
 		if( dynamic_cast< SubjectTab* > (widget(i))->getSubject() == subject )

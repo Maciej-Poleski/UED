@@ -5,6 +5,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QFile>
+#include <QtCore/QDebug>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 #include <UpdateManagerInterface.hxx>
@@ -43,15 +44,10 @@ private:
 
 public:
 	QNetworkReply* reply;
-	DownloadFile( QObject* parent, QString name, QString destination =
-			QString() ) :
+	DownloadFile( QObject* parent, QString name, QString destination = QString() ) :
 		QEventLoop(parent), destination(destination)
 	{
-		reply
-				= core->getNetworkAccessManager()->get(
-													   QNetworkRequest(
-																	   QUrl(
-																			name)));
+		reply = core->getNetworkAccessManager()->get(QNetworkRequest(QUrl(name)));
 		connect(reply, SIGNAL(finished()), this, SLOT(done()));
 		exec();
 	}
@@ -63,7 +59,7 @@ public:
 public slots:
 	void done()
 	{
-		if(reply->error())
+		if( reply->error() )
 			exit(reply->error());
 		if( destination != QString() )
 		{
@@ -76,9 +72,7 @@ public slots:
 };
 
 /** Klasa realizująca podstawowe wymagania interfejsu UpdateManagerInterface. */
-class BasicUpdateManager : public QObject,
-						   public UpdateManagerInterface,
-						   public PluginInterface
+class BasicUpdateManager : public QObject, public UpdateManagerInterface, public PluginInterface
 {
 Q_OBJECT
 Q_DISABLE_COPY(BasicUpdateManager)Q_INTERFACES(Core::PluginInterface)
@@ -89,6 +83,7 @@ public:
 	BasicUpdateManager( QObject* parent = 0 ) :
 		QObject(parent)
 	{
+		qDebug() << "Tworzenie BasicUpdateManager";
 	}
 	~BasicUpdateManager()
 	{

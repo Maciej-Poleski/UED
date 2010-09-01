@@ -163,8 +163,9 @@ void CheckUpdates::getNext()
 {
 	if( !plugins.isEmpty() )
 	{
-		networkReply = core->getNetworkAccessManager()->get(QNetworkRequest(QUrl(QString(SERVER)
-				+ BasicUpdateManager::parseName(plugins.back()) + ".check")));
+		QUrl *url = new QUrl(QString(SERVER) + BasicUpdateManager::parseName(plugins.back()) + ".check");
+		QNetworkRequest *request = new QNetworkRequest( *url);
+		networkReply = core->getNetworkAccessManager()->get( *request);
 		connect(networkReply, SIGNAL(finished()), this, SLOT(gotNext()));
 	}
 	else
@@ -175,7 +176,7 @@ void CheckUpdates::gotNext()
 {
 	fprintf(stderr, "f");
 	int currentVersion = plugins.back()->getVersion();
-	int availableVersion = networkReply->readAll().toInt(); // FIXME bool* ok;
+	int availableVersion = networkReply->readAll().toInt(); // TODO bool* ok;
 	if( availableVersion > currentVersion ) result << plugins.back();
 	plugins.pop_back();
 	networkReply->deleteLater();

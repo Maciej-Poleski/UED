@@ -12,6 +12,7 @@
 #include <PluginInterface.hxx>
 #include <MarkDatabaseInterface.hxx>
 #include <BinarySerializable.hxx>
+#include <Storeable.hxx>
 
 #include <QtCore/QList>
 
@@ -26,7 +27,8 @@ class MarksTabWidget;
 class BasicMarkDatabase : public QObject,
 						  public Core::PluginInterface,
 						  public MarkDatabaseInterface,
-						  public BinarySerializable
+						  public BinarySerializable,
+						  public Storeable
 {
 Q_OBJECT
 Q_DISABLE_COPY(BasicMarkDatabase)Q_INTERFACES(Core::PluginInterface)
@@ -64,7 +66,8 @@ public:
 	virtual MarkInterface* getMark( EventInterface* event ) const
 	{
 		foreach(MarkInterface* mark,marksList)
-				if( mark->getEvent() == event ) return mark;
+				if( mark->getEvent() == event )
+					return mark;
 		return 0;
 	}
 
@@ -80,28 +83,41 @@ public:
 	{
 		QList< MarkInterface* > result;
 		foreach(MarkInterface* mark, marksList)
-				if( mark->getSubject() == subject ) result << mark;
+				if( mark->getSubject() == subject )
+					result << mark;
 		return result;
 	}
 	virtual QList< MarkInterface* > getMarksList( TypeInterface* type ) const
 	{
 		QList< MarkInterface* > result;
 		foreach(MarkInterface* mark, marksList)
-				if( mark->getType() == type ) result << mark;
+				if( mark->getType() == type )
+					result << mark;
 		return result;
 	}
 
-	virtual int getExpectedID( MarkInterface* mark ) const
+	virtual qint64 getExpectedID( MarkInterface* mark ) const
 	{
 		return marksList.indexOf(mark);
 	}
-	virtual MarkInterface* getMarkByID( int ID ) const
+	virtual MarkInterface* getMarkByID( qint64 ID ) const
 	{
 		return marksList[ID];
 	}
 
+	qint64 marksCound() const
+	{
+		return marksList.count();
+	}
+
 	virtual void saveBinarySerialization( QDataStream& ) const;
 	virtual void loadBinarySerialization( QDataStream& );
+
+	/** Pyta użytkownika o ocene i zwraca stworzony obiekt. */
+	bool askUser( QWidget* parent, EventInterface* event );
+
+	/** Pyta użytkownika o ocene i zwraca stworzony obiekt. */
+	bool askUser( QWidget* parent, TypeInterface* type );
 
 signals:
 	void markAdded( AbstractBasicMark* mark );
@@ -109,6 +125,9 @@ signals:
 private:
 	QList< MarkInterface* > marksList;
 	MarksTabWidget* widget;
+
+	void store() const;
+	void restore();
 };
 
 }

@@ -75,12 +75,12 @@ public:
 	virtual void saveBinarySerialization( QDataStream& ) const;
 	virtual void loadBinarySerialization( QDataStream& );
 
-	virtual int getExpectedTypeID( TypeInterface* type ) const
+	virtual qint64 getExpectedTypeID( TypeInterface* type ) const
 	{
 		return typesList.indexOf(type);
 	}
 
-	virtual TypeInterface* getTypeByID( int ID ) const
+	virtual TypeInterface* getTypeByID( qint64 ID ) const
 	{
 		return typesList[ID];
 	}

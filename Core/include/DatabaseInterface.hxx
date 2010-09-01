@@ -32,8 +32,8 @@ public:
 
 	virtual QList< SubjectInterface* > getSubjectsList() const=0;
 
-	virtual int getExpectedSubjectID(SubjectInterface* subject) const=0; ///< Tworzy niebezpieczne wiązania
-	virtual SubjectInterface* getSubjectByID(int ID) const=0; ///< Wykorzystuje niebezpieczne wiązania
+	virtual qint64 getExpectedSubjectID(SubjectInterface* subject) const=0; ///< Tworzy niebezpieczne wiązania
+	virtual SubjectInterface* getSubjectByID(qint64 ID) const=0; ///< Wykorzystuje niebezpieczne wiązania
 
 };
 

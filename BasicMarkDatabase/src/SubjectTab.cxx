@@ -33,11 +33,15 @@ void SubjectTab::populate()
 			int row = layout->rowCount();
 			QLabel* label = new QLabel(type->getName(), this);
 			layout ->addWidget(label, row, 0, Qt::AlignLeft);
-			QString marksString;
+			QHBoxLayout *marksLayout = new QHBoxLayout();
 			foreach(MarkInterface* mark,type->getMarksList())
-					marksString += " " + mark->toString();
-			label = new QLabel(marksString, this);
-			layout->addWidget(label, row, 1, Qt::AlignLeft);
+				{
+					QLabel *label = new QLabel(mark->toString(), this);
+					label->setToolTip(dynamic_cast< AbstractBasicMark* > (mark)->getComment());
+					marksLayout->addWidget(label);
+				}
+			marksLayout->addStretch(1);
+			layout->addLayout(marksLayout, row, 1, Qt::AlignLeft);
 			if( !eventsDatabaseIsAvailable )
 			{
 				AddMarkButton* button = new AddMarkButton(type, tr("Add mark"), this);
@@ -61,6 +65,7 @@ SubjectTab::SubjectTab( BasicMarkDatabase *database, SubjectInterface* subject, 
 void SubjectTab::update()
 {
 	delete layout;
+	layout = 0;
 	foreach(QObject* object,children())
 			delete object;
 	populate();
@@ -68,6 +73,7 @@ void SubjectTab::update()
 
 void SubjectTab::addMark( TypeInterface* type )
 {
+#ifdef USE_OBSOLETE_ADD_MARK
 	///< TODO: Solidna implementacja tej funkcji
 	QDialog *dialog = new QDialog(this);
 	QLabel *dateLabel = new QLabel(tr("Date"), dialog);
@@ -94,6 +100,10 @@ void SubjectTab::addMark( TypeInterface* type )
 		BasicStringMark *mark = new BasicStringMark(database, type, dateEdit->date(), lineEdit->text());
 		Core::core->getMarksDatabase()->addMark(mark);
 	}
+#else
+	AbstractBasicMark* mark = AbstractBasicMark::askUser(this, type);
+	if( mark ) Core::core->getMarksDatabase()->addMark(mark);
+#endif
 }
 
 }

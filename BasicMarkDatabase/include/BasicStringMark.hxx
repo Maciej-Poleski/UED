@@ -17,7 +17,7 @@
 
 namespace MarkDatabase
 {
-
+/** @obsolete */
 class BasicStringMark : public AbstractBasicMark
 {
 	QString mark;
@@ -44,6 +44,11 @@ public:
 		return mark;
 	}
 
+	virtual QString getComment() const //STUB
+	{
+		return QString();
+	}
+
 	virtual void saveBinarySerialization( QDataStream& dataStream ) const
 	{
 		dataStream << quint64(1); ///< Symbol BasicStringMark
@@ -52,7 +57,6 @@ public:
 	}
 	virtual void loadBinarySerialization( QDataStream& dataStream )
 	{
-		AbstractBasicMark::loadBinarySerialization(dataStream);
 		dataStream >> mark;
 	}
 };

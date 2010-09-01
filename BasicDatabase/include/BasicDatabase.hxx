@@ -10,6 +10,7 @@
 
 #include <QtCore/QList>
 #include <QtCore/QObject>
+#include <QtCore/QDebug>
 #include <QtGui/QWidget>
 #include <QtGui/QMenu>
 #include <QtGui/QTabWidget>
@@ -23,6 +24,7 @@
 #include <PluginInterface.hxx>
 #include <SubjectInterface.hxx>
 #include <BinarySerializable.hxx>
+#include <Storeable.hxx>
 
 namespace Core
 {
@@ -30,7 +32,8 @@ namespace Core
 class BasicDatabase : public virtual QObject,
 					  public Core::PluginInterface,
 					  public DatabaseInterface,
-					  public BinarySerializable
+					  public BinarySerializable,
+					  public Storeable
 {
 Q_OBJECT
 Q_DISABLE_COPY(BasicDatabase)Q_INTERFACES(Core::PluginInterface)
@@ -38,6 +41,7 @@ Q_DISABLE_COPY(BasicDatabase)Q_INTERFACES(Core::PluginInterface)
 public:
 	BasicDatabase()
 	{
+		qDebug() << "Tworzenie BasicDatabase";
 	}
 	virtual ~BasicDatabase()
 	{
@@ -81,12 +85,12 @@ public:
 	virtual void saveBinarySerialization( QDataStream& ) const;
 	virtual void loadBinarySerialization( QDataStream& );
 
-	virtual int getExpectedSubjectID( SubjectInterface* subject ) const
+	virtual qint64 getExpectedSubjectID( SubjectInterface* subject ) const
 	{
 		return subjectsList.indexOf(subject);
 	}
 
-	virtual SubjectInterface* getSubjectByID( int ID ) const
+	virtual SubjectInterface* getSubjectByID( qint64 ID ) const
 	{
 		return subjectsList[ID];
 	}
@@ -97,7 +101,7 @@ signals:
 
 public slots:
 	void addType( SubjectInterface* );
-	void store();
+	void store() const;
 	void restore();
 
 private:
